@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="author" content="Jan Heiland &amp; Peter Benner &amp; Steffen Werner (MPI Magdeburg)">
+  <title>Low-dimensional LPV approximations for nonlinear control</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@^4//dist/reset.css">
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@^4//dist/reveal.css">
+  <style>
+    .reveal .sourceCode {  /* see #7635 */
+      overflow: visible;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    /* CSS for citations */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+    }
+    .hanging-indent div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }  </style>
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@^4//dist/theme/solarized.css" id="theme">
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+<section id="title-slide" data-background-image="pics/mpi-bridge.gif">
+  <h1 class="title">Low-dimensional LPV approximations for nonlinear
+control</h1>
+  <p class="subtitle">Blacksburg – May 2023</p>
+  <p class="author">Jan Heiland &amp; Peter Benner &amp; Steffen Werner
+(MPI Magdeburg)</p>
+</section>
+
+<section>
+<section id="introduction" class="title-slide slide level1">
+<h1>Introduction</h1>
+<p><span class="math display">\[\dot x = f(x) + Bu\]</span></p>
+</section>
+<section id="section" class="slide level2"
+data-background-video="pics/triple_swingup_slomo.MP4">
+<h2 data-background-video="pics/triple_swingup_slomo.MP4"></h2>
+<div class="fragment">
+<div
+style="position: absolute; width: 60%; right: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 5px 25px rgba(0,0,0,0.2); background-color: rgba(0, 0, 0, 0.9); color: #fff; padding: 20px; font-size: 40px; text-align: left;">
+<p>Control of an inverted pendulum</p>
+<ul>
+<li>9 degrees of freedom</li>
+<li>but nonlinear controller.</li>
+</ul>
+</div>
+</div>
+</section>
+<section id="section-1" class="slide level2"
+data-background-image="pics/dbrc-v_Re50_stst_cm-bbw.png">
+<h2 data-background-image="pics/dbrc-v_Re50_stst_cm-bbw.png"></h2>
+<div class="fragment">
+<div
+style="position: absolute; width: 60%; right: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 5px 25px rgba(0,0,0,0.2); background-color: rgba(0, 0, 0, 0.9); color: #fff; padding: 20px; font-size: 40px; text-align: left;">
+<p>Stabilization of a laminar flow</p>
+<ul>
+<li>50’000 degrees of freedom</li>
+<li>but linear regulator.</li>
+</ul>
+</div>
+</div>
+</section></section>
+<section>
+<section id="lpv-representation" class="title-slide slide level1">
+<h1>LPV Representation</h1>
+<p><span class="math display">\[\begin{align}
+\dot x -Bu &amp; = f(x) \\
+       &amp; \approx [A_0+\rho_1(x)A_1+ \dotsm + \rho_r(x) A_r]\, x
+\end{align}\]</span></p>
+</section>
+<section class="slide level2">
+
+<p>The <em>linear parameter varying</em> (LPV)
+representation/approximation <span class="math display">\[
+\dot x \approx  \bigl [\Sigma \,\rho_i(x)A_i \bigr]\, x + Bu
+\]</span> for nonlinear controller can call on</p>
+<ul>
+<li>a general structure (<strong>linear</strong> but
+parameter-varying)</li>
+<li>and extensive theory (<strong>LPV</strong> controller design)</li>
+</ul>
+<div class="fragment">
+<p><strong>The smaller the LPV parametrization the better.</strong></p>
+</div>
+</section></section>
+<section>
+<section id="how-to-design-an-lpv-approximation"
+class="title-slide slide level1">
+<h1>How to Design an LPV approximation</h1>
+<p>A general procedure</p>
+</section>
+<section class="slide level2">
+
+<p>If <span class="math inline">\(f(0)=0\)</span> and under mild
+conditions, the flow <span class="math inline">\(f\)</span> can be
+factorized <span class="math display">\[
+f( x) = [A(x)]\,x
+\]</span> with some <span class="math inline">\(A\colon \mathbb R^{n}
+\to \mathbb R^{n\times n}\)</span>.</p>
+<div class="fragment">
+<ol type="1">
+<li>If <span class="math inline">\(f\)</span> has a strongly continuous
+Jacobian <span class="math inline">\(\partial f\)</span>, then <span
+class="math display">\[
+f(x) = [\int_0^1 \partial f(sx)\mathsf{d} s]\, x
+\]</span></li>
+<li>The trivial choice of <span class="math display">\[
+f(x) = [\frac{1}{x^Tx}f(x)x^T]\,x
+\]</span> doesn’t work well – neither do the improvements <span
+class="citation" data-cites="LinVL15">(Lin, Vandewalle, and Liang
+2015)</span>.</li>
+</ol>
+</div>
+</section>
+<section class="slide level2">
+
+<p>For the factorization <span
+class="math inline">\(f(x)=A(x)\,x\)</span>, one can say that</p>
+<ol type="1">
+<li>it is not unique</li>
+<li>it can be a design parameter</li>
+<li>often, it is indicated by the structure.</li>
+</ol>
+<div class="fragment">
+<p>… like in the advective term in the <em>Navier-Stokes</em> equations:
+<span class="math display">\[
+(v\cdot \nabla)v = \mathcal A_s(v)\,v.
+\]</span></p>
+</div>
+</section>
+<section class="slide level2">
+
+<p>Now, we have an <em>state-dependent coefficient</em>
+representation</p>
+<p><span class="math display">\[ f(x) = A(x)\,x.\]</span></p>
+</section>
+<section id="how-to-obtain-an-lpv-representationapproximation"
+class="slide level2">
+<h2>How to obtain an LPV representation/approximation?</h2>
+</section>
+<section id="dot-x-axx-bu" class="slide level2">
+<h2><span class="math inline">\(\dot x = A(x)\,x + Bu\)</span></h2>
+<ul>
+<li><p>Trivially, this is an LPV representation <span
+class="math display">\[
+\dot x = A(\rho(x))\, x + Bu
+\]</span> with <span class="math inline">\(\rho(x) =
+x\)</span>.</p></li>
+<li><p>Take any model order reduction scheme that <em>encodes</em> (via
+<span class="math inline">\(\mathcal P\)</span>) the state and
+<em>decodes</em> it (via <span class="math inline">\(\mathcal
+L\)</span>) so that <span class="math display">\[
+\tilde x = \mathcal L(\hat x) = \mathcal L (\mathcal P(x)) \approx x
+\]</span></p></li>
+</ul>
+<div class="fragment">
+<ul>
+<li>Then <span class="math inline">\(\rho = \mathcal P(x)\)</span> gives
+a low-dimensional LPV approximation by means of <span
+class="math display">\[
+A(x)\,x \approx A(\tilde x)\, x = A(\mathcal L \rho (x))\,x.
+\]</span></li>
+</ul>
+</div>
+</section>
+<section id="observation" class="slide level2">
+<h2>Observation</h2>
+<ul>
+<li><p>If <span class="math inline">\(x\mapsto A(x)\)</span> itself is
+affine linear</p></li>
+<li><p>and <span class="math inline">\(\mathcal L\)</span> is
+linear,</p></li>
+<li><p>then <span class="math display">\[
+   \dot x \approx A(\mathcal L \rho(x))\,x + Bu = [A_0 + \sum_{i=1}^r
+\rho_i(x) A_i]\, x + Bu
+   \]</span> is <strong>affine</strong> with</p>
+<ul>
+<li><span class="math inline">\(\rho_i(x)\)</span> being the components
+of <span class="math inline">\(\rho(x)\in \mathbb R^r\)</span></li>
+<li>and constant matrices <span class="math inline">\(A_0\)</span>,
+<span class="math inline">\(A_1\)</span>, …, <span
+class="math inline">\(A_r \in \mathbb R^{n\times n}\)</span>.</li>
+</ul></li>
+</ul>
+</section>
+<section id="intermediate-summary" class="slide level2">
+<h2>Intermediate Summary</h2>
+<ul>
+<li><p>Generally, a nonlinear <span class="math inline">\(f\)</span> can
+be factorized as <span class="math inline">\(f(x) =
+A(x)\,x\)</span>.</p></li>
+<li><p>Model order reduction provides a low dimensional LPV
+representation <span class="math inline">\(A(x)\,x\approx A(\mathcal
+\rho(x))\,x\)</span>.</p></li>
+<li><p>The needed affine-linearity in <span
+class="math inline">\(\rho\)</span> follows from system’s structure (or
+from another layer of approximation.</p></li>
+<li><p>We will look for <strong>linear</strong> decoding and possibly
+nonlinear encoding.</p></li>
+</ul>
+</section></section>
+<section>
+<section id="convolutional-autoencoders"
+class="title-slide slide level1">
+<h1>(Convolutional) Autoencoders</h1>
+
+</section>
+<section id="section-2" class="slide level2"
+data-background-image="pics/cw-Re60-t161-cm-bbw.png"
+data-background-size="cover">
+<h2 data-background-image="pics/cw-Re60-t161-cm-bbw.png"
+data-background-size="cover"></h2>
+<div class="fragment">
+<div
+style="position: absolute; width: 60%; right: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 5px 25px rgba(0,0,0,0.2); background-color: rgba(0, 0, 0, 0.9); color: #fff; padding: 20px; font-size: 40px; text-align: left;">
+<p>The <em>Navier-Stokes</em> equations</p>
+<p><span class="math display">\[
+\dot v + (v\cdot \nabla) v- \frac{1}{\mathsf{Re}}\Delta v + \nabla p= f,
+\]</span></p>
+<p><span class="math display">\[
+\nabla \cdot v = 0.
+\]</span></p>
+</div>
+</div>
+</section>
+<section id="section-3" class="slide level2"
+data-background-image="pics/cw-Re60-t161-cm-bbw.png"
+data-background-size="cover">
+<h2 data-background-image="pics/cw-Re60-t161-cm-bbw.png"
+data-background-size="cover"></h2>
+<div
+style="position: absolute; width: 60%; right: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 5px 25px rgba(0,0,0,0.2); background-color: rgba(0, 0, 0, 0.9); color: #fff; padding: 20px; font-size: 40px; text-align: left;">
+<p>Simulation model:</p>
+<ul>
+<li>we use <em>finite elements</em> to obtain</li>
+<li>the dynamical model of type</li>
+</ul>
+<p><span class="math inline">\(\quad \quad \quad \dot x = Ax +
+N(x)\,x,\)</span></p>
+<ul>
+<li>with <span class="math inline">\(N\)</span> linear in <span
+class="math inline">\(x\)</span></li>
+<li>and a state dimension of about <span
+class="math inline">\(n=50&#39;000\)</span>.</li>
+</ul>
+</div>
+</section>
+<section id="question" class="slide level2">
+<h2>Question</h2>
+<p>We want to reduce the state-dimension as much as possible – can we do
+better than POD?</p>
+</section>
+<section id="section-4" class="slide level2"
+data-background-image="pics/scrsho-lee-cb.png">
+<h2 data-background-image="pics/scrsho-lee-cb.png"></h2>
+<div class="fragment">
+<div
+style="position: absolute; width: 60%; right: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 5px 25px rgba(0,0,0,0.2); background-color: rgba(0, 0, 0, 0.9); color: #fff; padding: 20px; font-size: 40px; text-align: left;">
+<p>Lee/Carlberg (2019): <em>MOR of dynamical systems on nonlinear
+manifolds using deep convolutional autoencoders</em></p>
+</div>
+</div>
+</section>
+<section id="section-5" class="slide level2"
+data-background-image="pics/scrsho-choi.png">
+<h2 data-background-image="pics/scrsho-choi.png"></h2>
+<div class="fragment">
+<div
+style="position: absolute; width: 60%; right: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 5px 25px rgba(0,0,0,0.2); background-color: rgba(0, 0, 0, 0.9); color: #fff; padding: 20px; font-size: 40px; text-align: left;">
+<p>Kim/Choi/Widemann/Zodi (2020): <em>Efficient nonlinear manifold
+reduced order model</em></p>
+</div>
+</div>
+</section>
+<section id="convolutional-autoencoders-for-nse" class="slide level2">
+<h2>Convolutional Autoencoders for NSE</h2>
+<ol type="1">
+<li><p>Consider solution snapshots <span
+class="math inline">\(v(t_k)\)</span> as pictures.</p></li>
+<li><p>Learn convolutional kernels to extract relevant
+features.</p></li>
+<li><p>While extracting the features, we reduce the dimensions.</p></li>
+<li><p>Encode <span class="math inline">\(v(t_k)\)</span> in a
+low-dimensional <span class="math inline">\(\rho_k\)</span>.</p></li>
+</ol>
+</section>
+<section id="our-example-architecture-implementation"
+class="slide level2">
+<h2>Our Example Architecture Implementation</h2>
+</section>
+<section id="section-6" class="slide level2"
+data-background-image="pics/nse-cnn.jpg">
+<h2 data-background-image="pics/nse-cnn.jpg"></h2>
+<div class="fragment">
+<div
+style="position: absolute; width: 60%; right: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 5px 25px rgba(0,0,0,0.2); background-color: rgba(0, 0, 0, 0.9); color: #fff; padding: 20px; font-size: 40px; text-align: left;">
+<ul>
+<li><p>A number of convolutional layers for feature extraction and
+reduction</p></li>
+<li><p>A full linear layer with nonlinear activation for the final
+encoding <span class="math inline">\(\rho\in \mathbb
+R^{r}\)</span></p></li>
+<li><p>A linear layer (w/o activation) that expands <span
+class="math inline">\(\rho \to \tilde \rho\in \mathbb
+R^{k}\)</span>.</p></li>
+</ul>
+</div>
+</div>
+</section>
+<section id="input" class="slide level2">
+<h2>Input:</h2>
+<ul>
+<li><p>Velocity snapshots <span class="math inline">\(v_i\)</span> of an
+FEM simulation with <span class="math display">\[n=50&#39;000\]</span>
+degrees of freedom</p></li>
+<li><p>interpolated to two pictures with <code>63x95</code> pixels
+each.</p></li>
+</ul>
+</section>
+<section id="side-note-fem-aware-training" class="slide level2">
+<h2>Side note: FEM aware training</h2>
+<p>For the loss functions, we implemented the correct FEM norms <span
+class="math display">\[
+\| v_i - \tilde v_i\|_M
+\]</span> and</p>
+<p><span class="math display">\[\| (v_i\cdot \nabla)v_i - (\tilde v_i
+\cdot \nabla )v_i\|_{M^{-1}}\]</span></p>
+<p>with the mass matrix <span class="math inline">\(M\)</span> of the
+FEM discretization.</p>
+</section>
+<section id="results" class="slide level2">
+<h2>Results</h2>
+</section>
+<section class="slide level2">
+
+<div
+style="position: absolute; width: 60%; right: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 5px 25px rgba(0,0,0,0.2); background-color: rgba(0, 0, 0, 0.9); color: #fff; padding: 20px; font-size: 40px; text-align: left;">
+<p>Drag/lift phase portrait of</p>
+<ul>
+<li>the cylinder wake at <span
+class="math inline">\(\mathsf{RE}=40\)</span> with</li>
+<li>convection parametrized as <span
+class="math inline">\(N(v)\,v\approx \tilde N(\rho(v))\,v\)</span></li>
+<li>with <span class="math inline">\(\rho(v(t))\in \mathbb R^3\)</span>
+(in numbers: three)</li>
+<li>obtained through POD and CNN</li>
+</ul>
+</div>
+</section>
+<section id="section-7" class="slide level2"
+data-background-image="pics/dlppt-cs3.svg"
+data-background-size="contain">
+<h2 data-background-image="pics/dlppt-cs3.svg"
+data-background-size="contain"></h2>
+</section></section>
+<section>
+<section id="clustering" class="title-slide slide level1">
+<h1>Clustering</h1>
+
+</section>
+<section class="slide level2">
+
+<p><strong>OBSERVATION</strong></p>
+<p>For POD, the parametrization might be <strong>good</strong>, but the
+range of the decoding basis is <strong>insufficient</strong>.</p>
+<div class="fragment">
+<p><strong>IDEA</strong></p>
+<ul>
+<li>Decode <span class="math inline">\(\rho \to \tilde v\)</span> with
+local bases (or local decoders)</li>
+<li>still, <span class="math inline">\(\rho\)</span> is a
+parametrization of <span class="math inline">\(v\)</span>, however,</li>
+<li>the decoding becomes <strong>nonlinear</strong> and (even
+<strong>noncontinuous</strong>).</li>
+</ul>
+</div>
+</section>
+<section id="our-approach" class="slide level2">
+<h2>Our Approach</h2>
+<ol start="0" type="1">
+<li>Train/compute the encoding: <span class="math inline">\(v\to
+\rho\)</span></li>
+<li>Identify clusters <span
+class="math inline">\(c_1,\dotsc,c_K\)</span> in the values of <span
+class="math inline">\(\rho\)</span></li>
+<li>On each cluster <span class="math inline">\(c_k\)</span>
+train/compute a decoder <span class="math inline">\(\mathcal L_k\colon
+\rho \to \tilde v\)</span></li>
+<li>Decode by (1) assigning a cluster to <span
+class="math inline">\(\rho(t)\)</span> and (2) apply <span
+class="math inline">\(\mathcal L_k\)</span></li>
+</ol>
+</section>
+<section id="our-results-using-5-clusters" class="slide level2">
+<h2>Our Results – using 5 clusters</h2>
+</section>
+<section id="section-8" class="slide level2"
+data-background-image="pics/cae-pod-cluster.png"
+data-background-size="contain">
+<h2 data-background-image="pics/cae-pod-cluster.png"
+data-background-size="contain"></h2>
+</section></section>
+<section>
+<section id="conclusion" class="title-slide slide level1">
+<h1>Conclusion</h1>
+<ul>
+<li><p>Convolutional Neural Networks easily outperform POD at very low
+dimensions.</p></li>
+<li><p>Further improvements possible through clustering.</p></li>
+</ul>
+</section>
+<section id="and-outlook" class="slide level2">
+<h2>… and Outlook</h2>
+<ul>
+<li><p>Controller design!</p></li>
+<li><p>Proof of concept for nonlinear controller design with POD and
+truncated SDRE <span class="citation" data-cites="HeiW23">(Heiland and
+Werner 2023)</span>.</p></li>
+<li><p>Current work – make clustering a smooth operation.</p></li>
+</ul>
+<div class="fragment">
+<p>Thank You!</p>
+</div>
+</section>
+<section id="references" class="slide level2 unnumbered">
+<h2 class="unnumbered">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-BenH18" class="csl-entry" role="listitem">
+Benner, Peter, and Jan Heiland. 2018. <span>“Exponential Stability and
+Stabilization of <span>E</span>xtended <span>L</span>inearizations via
+Continuous Updates of <span>R</span>iccati Based Feedback.”</span>
+<em>Internat. J. Robust and Nonlinear Cont.</em> 28 (4): 1218–32. <a
+href="https://doi.org/10.1002/rnc.3949">https://doi.org/10.1002/rnc.3949</a>.
+</div>
+<div id="ref-10.3389/fams.2022.879140" class="csl-entry"
+role="listitem">
+Heiland, Jan, Peter Benner, and Rezvan Bahmani. 2022.
+<span>“Convolutional Neural Networks for Very Low-Dimensional LPV
+Approximations of Incompressible Navier-Stokes Equations.”</span>
+<em>Frontiers in Applied Mathematics and Statistics</em> 8. <a
+href="https://doi.org/10.3389/fams.2022.879140">https://doi.org/10.3389/fams.2022.879140</a>.
+</div>
+<div id="ref-HeiW23" class="csl-entry" role="listitem">
+Heiland, Jan, and Steffen W. R. Werner. 2023. <span>“Low-Complexity
+Linear Parameter-Varying Approximations of Incompressible
+<span>N</span>avier-<span>S</span>tokes Equations for Truncated
+State-Dependent <span>R</span>iccati Feedback.”</span> arxiv.
+</div>
+<div id="ref-KimH23" class="csl-entry" role="listitem">
+Kim, Y., and J. Heiland. 2023. <span>“Convolutional Autoencoders,
+Clustering, and <span>POD</span> for Low-Dimensional Parametrization of
+<span>N</span>avier-<span>S</span>tokes Equations.”</span> E-print
+2302.01278. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2302.01278">https://doi.org/10.48550/arXiv.2302.01278</a>.
+</div>
+<div id="ref-KimCWZ20" class="csl-entry" role="listitem">
+Kim, Youngkyu, Youngsoo Choi, David Widemann, and Tarek Zohdi. 2020.
+<span>“Efficient Nonlinear Manifold Reduced Order Model.”</span>
+<em>CoRR</em> abs/2011.07727.
+</div>
+<div id="ref-LeeC20" class="csl-entry" role="listitem">
+Lee, Kookjin, and Kevin T. Carlberg. 2020. <span>“Model Reduction of
+Dynamical Systems on Nonlinear Manifolds Using Deep Convolutional
+Autoencoders.”</span> <em>J. Comput. Phys.</em> 404.
+</div>
+<div id="ref-LinVL15" class="csl-entry" role="listitem">
+Lin, Li-Gang, Joos Vandewalle, and Yew-Wen Liang. 2015.
+<span>“Analytical Representation of the State-Dependent Coefficients in
+the <span>SDRE/SDDRE</span> Scheme for Multivariable Systems.”</span>
+<em>Autom.</em> 59: 106–11. <a
+href="https://doi.org/10.1016/j.automatica.2015.06.015">https://doi.org/10.1016/j.automatica.2015.06.015</a>.
+</div>
+</div>
+</section></section>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/reveal.js@^4//dist/reveal.js"></script>
+
+  <!-- reveal.js plugins -->
+  <script src="https://unpkg.com/reveal.js@^4//plugin/notes/notes.js"></script>
+  <script src="https://unpkg.com/reveal.js@^4//plugin/search/search.js"></script>
+  <script src="https://unpkg.com/reveal.js@^4//plugin/zoom/zoom.js"></script>
+  <script src="https://unpkg.com/reveal.js@^4//plugin/math/math.js"></script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://revealjs.com/config/
+      Reveal.initialize({
+        // Display controls in the bottom right corner
+        controls: true,
+
+        // Help the user learn the controls by providing hints, for example by
+        // bouncing the down arrow when they first encounter a vertical slide
+        controlsTutorial: true,
+
+        // Determines where controls appear, "edges" or "bottom-right"
+        controlsLayout: 'bottom-right',
+
+        // Visibility rule for backwards navigation arrows; "faded", "hidden"
+        // or "visible"
+        controlsBackArrows: 'faded',
+
+        // Display a presentation progress bar
+        progress: true,
+
+        // Display the page number of the current slide
+        slideNumber: false,
+
+        // 'all', 'print', or 'speaker'
+        showSlideNumber: 'all',
+
+        // Add the current slide number to the URL hash so that reloading the
+        // page/copying the URL will return you to the same slide
+        hash: true,
+
+        // Start with 1 for the hash rather than 0
+        hashOneBasedIndex: false,
+
+        // Flags if we should monitor the hash and change slides accordingly
+        respondToHashChanges: true,
+
+        // Push each slide change to the browser history
+        history: false,
+
+        // Enable keyboard shortcuts for navigation
+        keyboard: true,
+
+        // Enable the slide overview mode
+        overview: true,
+
+        // Disables the default reveal.js slide layout (scaling and centering)
+        // so that you can use custom CSS layout
+        disableLayout: false,
+
+        // Vertical centering of slides
+        center: true,
+
+        // Enables touch navigation on devices with touch input
+        touch: true,
+
+        // Loop the presentation
+        loop: false,
+
+        // Change the presentation direction to be RTL
+        rtl: false,
+
+        // see https://revealjs.com/vertical-slides/#navigation-mode
+        navigationMode: 'default',
+
+        // Randomizes the order of slides each time the presentation loads
+        shuffle: false,
+
+        // Turns fragments on and off globally
+        fragments: true,
+
+        // Flags whether to include the current fragment in the URL,
+        // so that reloading brings you to the same fragment position
+        fragmentInURL: true,
+
+        // Flags if the presentation is running in an embedded mode,
+        // i.e. contained within a limited portion of the screen
+        embedded: false,
+
+        // Flags if we should show a help overlay when the questionmark
+        // key is pressed
+        help: true,
+
+        // Flags if it should be possible to pause the presentation (blackout)
+        pause: true,
+
+        // Flags if speaker notes should be visible to all viewers
+        showNotes: false,
+
+        // Global override for autoplaying embedded media (null/true/false)
+        autoPlayMedia: null,
+
+        // Global override for preloading lazy-loaded iframes (null/true/false)
+        preloadIframes: null,
+
+        // Number of milliseconds between automatically proceeding to the
+        // next slide, disabled when set to 0, this value can be overwritten
+        // by using a data-autoslide attribute on your slides
+        autoSlide: 0,
+
+        // Stop auto-sliding after user input
+        autoSlideStoppable: true,
+
+        // Use this method for navigation when auto-sliding
+        autoSlideMethod: null,
+
+        // Specify the average time in seconds that you think you will spend
+        // presenting each slide. This is used to show a pacing timer in the
+        // speaker view
+        defaultTiming: null,
+
+        // Enable slide navigation via mouse wheel
+        mouseWheel: false,
+
+        // The display mode that will be used to show slides
+        display: 'block',
+
+        // Hide cursor if inactive
+        hideInactiveCursor: true,
+
+        // Time before the cursor is hidden (in ms)
+        hideCursorTime: 5000,
+
+        // Opens links in an iframe preview overlay
+        previewLinks: false,
+
+        // Transition style (none/fade/slide/convex/concave/zoom)
+        transition: 'slide',
+
+        // Transition speed (default/fast/slow)
+        transitionSpeed: 'default',
+
+        // Transition style for full page slide backgrounds
+        // (none/fade/slide/convex/concave/zoom)
+        backgroundTransition: 'fade',
+
+        // Number of slides away from the current that are visible
+        viewDistance: 15,
+
+        // Number of slides away from the current that are visible on mobile
+        // devices. It is advisable to set this to a lower number than
+        // viewDistance in order to save resources.
+        mobileViewDistance: 2,
+
+        // Parallax background image
+        parallaxBackgroundImage: 'pics/csc-en.svg', // e.g. "'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg'"
+
+        // Parallax background size
+        parallaxBackgroundSize: '1000px 1200px', // CSS syntax, e.g. "2100px 900px"
+
+        // The "normal" size of the presentation, aspect ratio will be preserved
+        // when the presentation is scaled to fit different resolutions. Can be
+        // specified using percentage units.
+        width: 1280,
+
+        height: 880,
+
+        // Factor of the display size that should remain empty around the content
+        margin: 0.05,
+
+        math: {
+          mathjax: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js',
+          config: 'TeX-AMS_HTML-full',
+          tex2jax: {
+            inlineMath: [['\\(','\\)']],
+            displayMath: [['\\[','\\]']],
+            balanceBraces: true,
+            processEscapes: false,
+            processRefs: true,
+            processEnvironments: true,
+            preview: 'TeX',
+            skipTags: ['script','noscript','style','textarea','pre','code'],
+            ignoreClass: 'tex2jax_ignore',
+            processClass: 'tex2jax_process'
+          },
+        },
+
+        // reveal.js plugins
+        plugins: [
+          RevealMath,
+          RevealNotes,
+          RevealSearch,
+          RevealZoom
+        ]
+      });
+    </script>
+    </body>
+</html>
