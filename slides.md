@@ -57,13 +57,10 @@ The *linear parameter varying* (LPV) representation/approximation
 $$
 \dot x \approx  \bigl [\Sigma \,\rho_i(x)A_i \bigr]\, x + Bu
 $$
-for nonlinear controller comes with
+for nonlinear controller can call on
 
  * a general structure (**linear** but parameter-varying)
-
-and extensive theory on
-
- * LPV controller design
+ * and extensive theory (**LPV** controller design)
 
 . . .
 
@@ -165,11 +162,11 @@ $$ f(x) = A(x)\,x.$$
 
  * Model order reduction provides a low dimensional LPV representation $A(x)\,x\approx A(\mathcal \rho(x))\,x$.
 
- * The needed affine-linearity in $\rho$ follows from system's structure (or from another layer of approximation (see, e.g, [@KoeT20]).
+ * The needed affine-linearity in $\rho$ follows from system's structure (or from another layer of approximation.
 
  * We will look for **linear** decoding and possibly nonlinear encoding.
 
-# Numerical Realization
+# (Convolutional) Autoencoders
 
 ## {data-background-image="pics/cw-Re60-t161-cm-bbw.png" data-background-size="cover"}
 
@@ -192,81 +189,25 @@ $$
 ## {data-background-image="pics/cw-Re60-t161-cm-bbw.png" data-background-size="cover"}
 
 ::: {style="position: absolute; width: 60%; right: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 5px 25px rgba(0,0,0,0.2); background-color: rgba(0, 0, 0, 0.9); color: #fff; padding: 20px; font-size: 40px; text-align: left;"}
-Control Problem:
-
- * use two small outlets for fluid at the cylinder boundary
- * to stabilize the unstable steady state
- * with a few point observations in the wake.
-
-:::
-
----
-
-## {data-background-image="pics/cw-Re60-t161-cm-bbw.png" data-background-size="cover"}
-
-::: {style="position: absolute; width: 60%; right: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 5px 25px rgba(0,0,0,0.2); background-color: rgba(0, 0, 0, 0.9); color: #fff; padding: 20px; font-size: 40px; text-align: left;"}
 Simulation model:
 
  * we use *finite elements* to obtain
  * the dynamical model of type
 
- $\dot x = Ax + N(x,x) + Bu, \quad y = Cx$
+ $\quad \quad \quad \dot x = Ax + N(x)\,x,$
 
- * with $N$ being bilinear in $x$
+ * with $N$ linear in $x$
  * and a state dimension of about $n=50'000$.
 
 :::
 
 ---
 
-## Low-dimensional LPV
-
-**Approximation** of *Navier-Stokes Equations* by *Convolutional Neural Networks*
-
----
-
-
-## {data-background-image="pics/cw-Re60-t161-cm-bbw.png" data-background-size="cover"}
-
-. . .
-
-::: {style="position: absolute; width: 60%; right: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 5px 25px rgba(0,0,0,0.2); background-color: rgba(0, 0, 0, 0.9); color: #fff; padding: 20px; font-size: 40px; text-align: left;"}
-The *Navier-Stokes* equations
-
-$$
-\dot v + (v\cdot \nabla) v- \frac{1}{\Re}\Delta v + \nabla p= f, 
-$$
-
-$$
-\nabla \cdot v = 0.
-$$
-:::
-
----
-
-* Let $v$ be the velocity solution and let
-$$
-V =
-\begin{bmatrix}
-V_1 & V_2 & \dotsm & V_r
-\end{bmatrix}
-$$
-be a, say, *POD* basis with $$v(t) \approx VV^Tv(t)=:\tilde v(t),$$
-
-* then $$\rho(v(t)) = V^Tv(t)$$ is a parametrization.
-
----
-
-* And with $$\tilde v = VV^Tv = V\rho = \sum_{k=1}^rV_k\rho_k,$$
-
-* the NSE has the low-dimensional LPV representation via
-$$
-(v\cdot \nabla) v \approx (\tilde v \cdot \nabla) v = [\sum_{k=1}^r\rho_k(V_k\cdot \nabla)]\,v.
-$$
 
 ## Question
 
-Can we do better than POD?
+We want to reduce the state-dimension as much as possible -- 
+can we do better than POD?
 
 ## {data-background-image="pics/scrsho-lee-cb.png"}
 
@@ -286,7 +227,7 @@ Lee/Carlberg (2019): *MOR of dynamical systems on nonlinear manifolds using deep
 Kim/Choi/Widemann/Zodi (2020): *Efficient nonlinear manifold reduced order model*
 :::
 
-## Convolution Autoencoders for NSE
+## Convolutional Autoencoders for NSE
 
 1. Consider solution snapshots $v(t_k)$ as pictures.
 
@@ -317,33 +258,20 @@ Kim/Choi/Widemann/Zodi (2020): *Efficient nonlinear manifold reduced order model
 
  * Velocity snapshots $v_i$ of an FEM simulation with $$n=50'000$$ degrees of freedom
 
- * interpolated to two pictures with `63x95` pixels each
+ * interpolated to two pictures with `63x95` pixels each.
 
- * makes a `2x63x69` tensor. 
+ 
+## Side note: FEM aware training
 
-## Training for minimizing:
+For the loss functions, we implemented the correct FEM norms
 $$
-\| v_i - VW\rho(v_i)\|^2_M
+\| v_i - \tilde v_i\|_M
 $$
-which includes
+and 
 
- 1. the POD modes $V\in \mathbb R^{n\times k}$,
+$$\| (v_i\cdot \nabla)v_i - (\tilde v_i \cdot \nabla )v_i\|_{M^{-1}}$$
 
- 2. a learned weight matrix $W\in \mathbb R^{k\times r}\colon \rho \mapsto \tilde \rho$,
-
- 3. the mass matrix $M$ of the FEM discretization.
-
-## Going PINN
-
-Outlook: 
-the induced low-dimensional affine-linear LPV representation of the convection
-$$\| (v_i\cdot \nabla)v_i - (VW\rho_i \cdot \nabla )v_i\|^2_{M^{-1}}$$
-as the target of the optimization.
-
-Implementation issues:
-
- * Include FEM operators while
- * maintaining the *backward* mode of the training.
+with the mass matrix $M$ of the FEM discretization.
 
 ## Results
 
@@ -364,23 +292,46 @@ Drag/lift phase portrait of
 
 ## {data-background-image="pics/dlppt-cs3.svg" data-background-size="contain"}
 
-# Conclusion
+# Clustering
 
-## ... and Outlook
+---
 
- * General approach to model **structure** reduction by low-dimensional affine LPV systems.
+**OBSERVATION**
 
- $$f(x) \quad \to\quad  A(x)\,x\quad  \to\quad  \tilde A(\rho(x))\,x\quad  \to\quad  [A_0 + \sum_{k=1}^r\rho_k(x)A_k]\,x$$
-
- * Proof of concept for nonlinear controller design with POD and truncated SDRE [@HeiW23].
-
- * General and performant but still heuristic approach.
+For POD, the parametrization might be **good**, but the range of the decoding basis is **insufficient**.
 
 . . .
 
-* Detailed roadmap for developing the LPV (systems) theory is available.
+**IDEA**
 
-* PhD student wanted!
+ * Decode $\rho \to \tilde v$ with local bases (or local decoders)
+ * still, $\rho$ is a parametrization of $v$, however,
+ * the decoding becomes **nonlinear** and (even **noncontinuous**).
+
+## Our Approach
+
+0. Train/compute the encoding: $v\to \rho$
+1. Identify clusters $c_1,\dotsc,c_K$ in the values of $\rho$
+2. On each cluster $c_k$ train/compute a decoder $\mathcal L_k\colon \rho \to \tilde v$
+4. Decode by (1) assigning a cluster to $\rho(t)$ and (2) apply $\mathcal L_k$
+
+## Our Results -- using 5 clusters
+
+## {data-background-image="pics/cae-pod-cluster.png" data-background-size="contain"}
+
+# Conclusion
+
+ * Convolutional Neural Networks easily outperform POD at very low dimensions.
+
+ * Further improvements possible through clustering.
+
+## ... and Outlook
+
+ * Controller design!
+
+ * Proof of concept for nonlinear controller design with POD and truncated SDRE [@HeiW23].
+
+ * Current work -- make clustering a smooth operation.
 
 . . .
 
