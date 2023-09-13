@@ -1,6 +1,6 @@
 MDFILE=slides.md
 
-pandoc $MDFILE -o slides.html \
+pandoc $MDFILE -o index.html \
     --citeproc \
     --mathjax  \
     -t revealjs --slide-level=2 -s \
