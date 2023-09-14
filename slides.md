@@ -47,7 +47,8 @@ Stabilization of a laminar flow
 # LPV Representation
 
 \begin{align}
-\dot x -Bu & = f(x) \\
+\dot x & = f(x) \\
+       & = A(x)\, x \\
        & \approx [A_0+\rho_1(x)A_1+ \dotsm + \rho_r(x) A_r]\, x
 \end{align}
 
@@ -121,11 +122,11 @@ $$ f(x) = A(x)\,x.$$
 
 ---
 
-## $\dot x = A(x)\,x + Bu$
+## $\dot x = A(x)\,x$
 
  * Trivially, this is an LPV representation 
  $$
- \dot x = A(\rho(x))\, x + Bu
+ \dot x = A(\rho(x))\, x
  $$
  with $\rho(x) = x$.
 
@@ -149,7 +150,7 @@ $$ f(x) = A(x)\,x.$$
    * and $\mathcal L$ is linear, 
    * then
    $$
-   \dot x \approx A(\mathcal L \rho(x))\,x + Bu = [A_0 + \sum_{i=1}^r \rho_i(x) A_i]\, x + Bu
+   \dot x \approx A(\mathcal L \rho(x))\,x = [A_0 + \sum_{i=1}^r \rho_i(x) A_i]\, x 
    $$
    is **affine** with 
 
@@ -218,6 +219,8 @@ can we do better than POD?
 Lee/Carlberg (2019): *MOR of dynamical systems on nonlinear manifolds using deep convolutional autoencoders*
 :::
 
+<!--
+
 ## {data-background-image="pics/scrsho-choi.png"}
 
 . . .
@@ -226,6 +229,8 @@ Lee/Carlberg (2019): *MOR of dynamical systems on nonlinear manifolds using deep
 
 Kim/Choi/Widemann/Zodi (2020): *Efficient nonlinear manifold reduced order model*
 :::
+
+-->
 
 ## Convolutional Autoencoders for NSE
 
@@ -316,6 +321,22 @@ For POD, the parametrization might be **good**, but the range of the decoding ba
 4. Decode by (1) assigning a cluster to $\rho(t)$ and (2) apply $\mathcal L_k$
 
 ## Our Results -- using 5 clusters
+
+## {data-background-image="pics/rho_2-3_K5.png" data-background-size="contain"}
+
+. . .
+
+::: {style="position: absolute; width: 60%; right: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 5px 25px rgba(0,0,0,0.2); background-color: rgba(0, 0, 0, 0.9); color: #fff; padding: 20px; font-size: 40px; text-align: left;"}
+
+Illustration of phases of
+
+* the latent variables
+* for $n_\rho=2$, $3$ and
+* clustering for $K=5$
+
+for the cylinder wake
+
+:::
 
 ## {data-background-image="pics/cae-pod-cluster.png" data-background-size="contain"}
 
