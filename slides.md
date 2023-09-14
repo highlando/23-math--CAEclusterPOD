@@ -1,8 +1,8 @@
 ---
 author: 
- - Jan Heiland & Peter Benner & Steffen Werner (MPI Magdeburg)
-title: Low-dimensional LPV approximations for nonlinear control
-subtitle: Blacksburg -- May 2023
+ - Jan Heiland & Peter Benner & Yongho Kim (MPI Magdeburg)
+title: CNNs and Clustering for LD-LPV Approximations of Incompressible Navier-Stokes Equations
+subtitle: Math+ -- Berlin -- September 2023
 title-slide-attributes:
     data-background-image: pics/mpi-bridge.gif
 parallaxBackgroundImage: pics/csc-en.svg
